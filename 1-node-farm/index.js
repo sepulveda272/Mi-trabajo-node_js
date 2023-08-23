@@ -21,6 +21,7 @@ console.log(hello); */
 // importacion de modulos
 const fs = require('fs');
 const http = require('http')
+const url = require('url');
 
 
 //lectura de archivos
@@ -111,8 +112,54 @@ console.log('Will read file work 4!'); */
 ////////////////////////////////////////////////////////////////////////////////
 //SERVER
 
+
+/* Codigo de nivel superior es decir solo se ejecuta una vez y hay muere xd, no se reinicia ni nada */
+
+const tempOverview = fs.readFileSync(`${__dirname}/templates/template-overview.html`, 'utf-8');
+const tempCard = fs.readFileSync(`${__dirname}/templates/template-card.html`, 'utf-8');
+const tempProduct = fs.readFileSync(`${__dirname}/templates/template-product.html`, 'utf-8');
+const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8');
+
+/* EL punto "." es donde se ejecuta la acción y el __dirname es donde se encuentra la carpeta actual */
+const dataObject = JSON.parse(data)
+
+/* const slugs = dataObject.map(ele => slugify(ele.productName, { lower: true}))
+console.log(slugs); */
+
+console.log(slugify('ESTA FRESCO ESA COSA', { lower: true}));
+
 const server = http.createServer((req,res)=>{
-    res.end('Hello from the server!')
+    const { query, pathname } = url.parse(req.url, true)
+
+    if(pathname === "/" || pathname === "/overview" ){
+        res.writeHead(200, {'Content-type':'text/html'});
+
+        const cardsHtml = dataObject.map(el => replaceTemplate(tempCard, el)).join('');
+        const output = tempOverview.replace('{%PRODUCT_CARDS%}', cardsHtml)
+
+        res.end(output);
+
+    }else  if(pathname === "/product"){
+        res.writeHead(200, {'Content-type':'text/html'});
+
+        const product = dataObject[query.id];
+        const output = replaceTemplate(tempProduct, product)
+        res.end(output);
+
+
+    }else if(pathname === "/api"){
+        res.writeHead(200, {'Content-type':'application/json'})
+        res.end(data);
+    }else{
+        /* Un encabezado http wa basicamente una información sobre la respuesta que estamos enviando */
+        res.writeHead(404,'utf-8',{
+            'Content-type':'text/html',
+            'my-own-header': 'hello-word'
+        });
+        res.end('<h1>Página no encontrada papá</h1>');
+    }
 })
 
-server.listen(8000, '127.0.0.1')
+server.listen(8001,'localhost', ()=>{
+    console.log('Se escuchan las respuestas desde el servidor 8001');
+})
