@@ -13,6 +13,7 @@
     //ESPACIO
     const espacio = "/* -------------------------------------------------------------------------------------------------------------------------- */"
 
+const { log } = require('console');
 //Codigo para verificar si funciona la consola
 
 /* const hello = "Hello world!";
@@ -113,53 +114,34 @@ console.log('Will read file work 4!'); */
 //SERVER
 
 
-/* Codigo de nivel superior es decir solo se ejecuta una vez y hay muere xd, no se reinicia ni nada */
+const data = fs.readFileSync("./starter/dev-data/data.json", "utf-8")
+const dataObj = JSON.parse(data)
 
-const tempOverview = fs.readFileSync(`${__dirname}/templates/template-overview.html`, 'utf-8');
-const tempCard = fs.readFileSync(`${__dirname}/templates/template-card.html`, 'utf-8');
-const tempProduct = fs.readFileSync(`${__dirname}/templates/template-product.html`, 'utf-8');
-const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8');
+const server = http.createServer((req,res) => {
+    const pathName = req.url;
 
-/* EL punto "." es donde se ejecuta la acción y el __dirname es donde se encuentra la carpeta actual */
-const dataObject = JSON.parse(data)
+    if (pathName === '/' || pathName === "/overview"){
+        res.end("this is the overview")
+    } else if (pathName === "/product"){
+        res.end("this is the product")
+    } else if (pathName === "/api"){
 
-/* const slugs = dataObject.map(ele => slugify(ele.productName, { lower: true}))
-console.log(slugs); */
+        fs.readFile("./starter/dev-data/data.json", "utf-8", (err, data)=>{
+            const productData = JSON.parse(data)
+            res.writeHead(200, {'Content-type':'application/json'})
+            res.end(data)
+        })
 
-console.log(slugify('ESTA FRESCO ESA COSA', { lower: true}));
-
-const server = http.createServer((req,res)=>{
-    const { query, pathname } = url.parse(req.url, true)
-
-    if(pathname === "/" || pathname === "/overview" ){
-        res.writeHead(200, {'Content-type':'text/html'});
-
-        const cardsHtml = dataObject.map(el => replaceTemplate(tempCard, el)).join('');
-        const output = tempOverview.replace('{%PRODUCT_CARDS%}', cardsHtml)
-
-        res.end(output);
-
-    }else  if(pathname === "/product"){
-        res.writeHead(200, {'Content-type':'text/html'});
-
-        const product = dataObject[query.id];
-        const output = replaceTemplate(tempProduct, product)
-        res.end(output);
-
-
-    }else if(pathname === "/api"){
-        res.writeHead(200, {'Content-type':'application/json'})
-        res.end(data);
-    }else{
-        /* Un encabezado http wa basicamente una información sobre la respuesta que estamos enviando */
-        res.writeHead(404,'utf-8',{
+        
+    } else {
+        res.writeHead(404, {
             'Content-type':'text/html',
             'my-own-header': 'hello-word'
         });
-        res.end('<h1>Página no encontrada papá</h1>');
+        res.end("<h1>la pagina no funshion</h1>")
     }
-})
+});
 
-server.listen(8001,'localhost', ()=>{
-    console.log('Se escuchan las respuestas desde el servidor 8001');
+server.listen(8000, "127.0.01", ()=>{
+    console.log("se escucha en el puerto 8000");
 })
