@@ -125,14 +125,8 @@ const server = http.createServer((req,res) => {
     } else if (pathName === "/product"){
         res.end("this is the product")
     } else if (pathName === "/api"){
-
-        fs.readFile("./starter/dev-data/data.json", "utf-8", (err, data)=>{
-            const productData = JSON.parse(data)
-            res.writeHead(200, {'Content-type':'application/json'})
-            res.end(data)
-        })
-
-        
+        res.writeHead(200, {'Content-type':'application/json'})
+        res.end(data)
     } else {
         res.writeHead(404, {
             'Content-type':'text/html',
